@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.UUID;
 
 import java.time.LocalDateTime;
 
@@ -15,16 +16,16 @@ import java.time.LocalDateTime;
 public class Post {
     
     @Id
-    @Column(name = "id_post", length = 100)
-    private String idPost;
+    @Column(name = "id_post")
+    private UUID idPost;
     
     @Column(name = "id_user", length = 100, nullable = false)
     private String idUser;
     
-    @Column(name = "noi_dung", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "noi_dung", columnDefinition = "TEXT")
     private String noiDung;
     
-    @Column(name = "duong_dan_anh", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "duong_dan_anh", columnDefinition = "TEXT")
     private String duongDanAnh;
     
     @Column(name = "che_do_rieng_tu", length = 20)

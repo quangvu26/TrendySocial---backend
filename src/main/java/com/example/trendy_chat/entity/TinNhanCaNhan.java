@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.UUID;
 
 import java.time.LocalDateTime;
 
@@ -14,16 +15,16 @@ import java.time.LocalDateTime;
 @Table(name = "tin_nhan_ca_nhan")
 public class TinNhanCaNhan {
     @Id
-    @Column(name = "ma_tin_nhan", length = 100)
-    private String maTinNhan;
+    @Column(name = "ma_tin_nhan")
+    private UUID maTinNhan;
 
     // ...existing code...
 
-    public String getId() {
+    public UUID getId() {
         return maTinNhan;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.maTinNhan = id;
     }
 
@@ -33,10 +34,10 @@ public class TinNhanCaNhan {
     @Column(name = "ma_nguoi_nhan", length = 100, nullable = false)
     private String maNguoiNhan;
 
-    @Column(name = "noi_dung", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "noi_dung", columnDefinition = "TEXT")
     private String noiDung;
 
-    @Column(name = "tep_dinh_kem", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "tep_dinh_kem", columnDefinition = "TEXT")
     private String tepDinhKem;
     @Column(name = "ma_nhom_solo")
     private String maNhomSolo;
@@ -47,28 +48,28 @@ public class TinNhanCaNhan {
     private Boolean daDoc = false;
 
     @Column(name = "ma_tin_nhan_tra_loi")
-    private String maTinNhanTraLoi;
+    private UUID maTinNhanTraLoi;
 
     @Column(name = "ghim")
     private Boolean ghim = false;
 
-    @Column(name = "reply_to_id", length = 100)
-    private String replyToId;
+    @Column(name = "reply_to_id")
+    private UUID replyToId;
 
-    @Column(name = "reply_to_content", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "reply_to_content", columnDefinition = "TEXT")
     private String replyToContent;
 
     @Column(name = "reply_to_sender", length = 100)
     private String replyToSender;
 
-    @Column(name = "attachments", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "attachments", columnDefinition = "TEXT")
     private String attachments; // JSON array of attachment URLs
 
-    public String getMaTinNhanTraLoi() {
+    public UUID getMaTinNhanTraLoi() {
         return maTinNhanTraLoi;
     }
 
-    public void setMaTinNhanTraLoi(String maTinNhanTraLoi) {
+    public void setMaTinNhanTraLoi(UUID maTinNhanTraLoi) {
         this.maTinNhanTraLoi = maTinNhanTraLoi;
     }
 
@@ -80,11 +81,11 @@ public class TinNhanCaNhan {
         this.ghim = ghim;
     }
 
-    public String getReplyToId() {
+    public UUID getReplyToId() {
         return replyToId;
     }
 
-    public void setReplyToId(String replyToId) {
+    public void setReplyToId(UUID replyToId) {
         this.replyToId = replyToId;
     }
 

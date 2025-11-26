@@ -5,11 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 public interface CommentLikeRepository extends JpaRepository<CommentLike, CommentLike.CommentLikeId> {
-    List<CommentLike> findByMaBinhLuan(String maBinhLuan);
+    List<CommentLike> findByMaBinhLuan(UUID maBinhLuan);
     List<CommentLike> findByIdUser(String idUser);
-    long countByMaBinhLuan(String maBinhLuan);
-    boolean existsByMaBinhLuanAndIdUser(String maBinhLuan, String idUser);
+    long countByMaBinhLuan(UUID maBinhLuan);
+    boolean existsByMaBinhLuanAndIdUser(UUID maBinhLuan, String idUser);
 }

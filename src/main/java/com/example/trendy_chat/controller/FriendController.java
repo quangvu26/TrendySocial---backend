@@ -94,7 +94,8 @@ public class FriendController {
     @PostMapping("/{maYeuCau}/accept")
     public ResponseEntity<?> accept(@PathVariable String maYeuCau) {
         try {
-            FriendRequest fr = friendService.findById(maYeuCau)
+            UUID maYeuCauUuid = UUID.fromString(maYeuCau);
+            FriendRequest fr = friendService.findById(maYeuCauUuid)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu"));
             
             // Check if already accepted

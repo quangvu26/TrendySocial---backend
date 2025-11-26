@@ -7,9 +7,10 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface BlockListRepository extends JpaRepository<BlockList, String> {
+public interface BlockListRepository extends JpaRepository<BlockList, UUID> {
     boolean existsByMaNguoiChanAndMaNguoiBiChan(String blockerId, String blockedId);
     
     List<BlockList> findByMaNguoiChan(String blockerId);

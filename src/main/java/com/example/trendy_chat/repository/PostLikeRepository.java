@@ -5,10 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 public interface PostLikeRepository extends JpaRepository<PostLike, PostLike.PostLikeId> {
-    List<PostLike> findByIdPost(String idPost);
+    List<PostLike> findByIdPost(UUID idPost);
     List<PostLike> findByIdUser(String idUser);
-    boolean existsByIdPostAndIdUser(String idPost, String idUser);
+    boolean existsByIdPostAndIdUser(UUID idPost, String idUser);
 }

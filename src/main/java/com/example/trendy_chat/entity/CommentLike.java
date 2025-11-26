@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.UUID;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -17,8 +18,8 @@ import java.time.LocalDateTime;
 public class CommentLike {
     
     @Id
-    @Column(name = "ma_binh_luan", length = 100)
-    private String maBinhLuan;
+    @Column(name = "ma_binh_luan")
+    private UUID maBinhLuan;
     
     @Id
     @Column(name = "id_user", length = 100)
@@ -39,7 +40,7 @@ public class CommentLike {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class CommentLikeId implements Serializable {
-        private String maBinhLuan;
+        private UUID maBinhLuan;
         private String idUser;
     }
 }

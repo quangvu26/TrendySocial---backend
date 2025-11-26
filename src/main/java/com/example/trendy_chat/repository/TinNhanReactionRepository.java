@@ -6,12 +6,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface TinNhanReactionRepository extends JpaRepository<TinNhanReaction, String> {
-    List<TinNhanReaction> findByMaTinNhan(String maTinNhan);
+public interface TinNhanReactionRepository extends JpaRepository<TinNhanReaction, UUID> {
+    List<TinNhanReaction> findByMaTinNhan(UUID maTinNhan);
     
-    Optional<TinNhanReaction> findByMaTinNhanAndIdUser(String maTinNhan, String idUser);
+    Optional<TinNhanReaction> findByMaTinNhanAndIdUser(UUID maTinNhan, String idUser);
     
-    void deleteByMaTinNhanAndIdUser(String maTinNhan, String idUser);
+    void deleteByMaTinNhanAndIdUser(UUID maTinNhan, String idUser);
 }

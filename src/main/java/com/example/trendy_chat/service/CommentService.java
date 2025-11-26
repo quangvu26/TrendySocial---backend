@@ -24,7 +24,7 @@ public class CommentService {
     
 
     @Transactional
-    public void deleteCommentWithReplies(String commentId) {
+    public void deleteCommentWithReplies(UUID commentId) {
         List<Comment> replies = commentRepository.findByMaTraLoi(commentId);
         for (Comment reply : replies) {
             deleteCommentWithReplies(reply.getMaBinhLuan());
@@ -35,14 +35,14 @@ public class CommentService {
     }
     
 
-    private void deleteCommentLikesOnly(String commentId) {
+    private void deleteCommentLikesOnly(UUID commentId) {
         List<CommentLike> likes = commentLikeRepository.findByMaBinhLuan(commentId);
         commentLikeRepository.deleteAll(likes);
     }
     
 
     @Transactional
-    public void likeComment(String commentId, String userId) {
+    public void likeComment(UUID commentId, String userId) {
         CommentLike.CommentLikeId id = new CommentLike.CommentLikeId(commentId, userId);
         
         if (!commentLikeRepository.existsById(id)) {
@@ -57,19 +57,19 @@ public class CommentService {
     
 
     @Transactional
-    public void unlikeComment(String commentId, String userId) {
+    public void unlikeComment(UUID commentId, String userId) {
         CommentLike.CommentLikeId id = new CommentLike.CommentLikeId(commentId, userId);
         commentLikeRepository.deleteById(id);
         System.out.println("✅ Comment unliked by user: " + userId + " for comment: " + commentId);
     }
     
 
-    public boolean isCommentLikedByUser(String commentId, String userId) {
+    public boolean isCommentLikedByUser(UUID commentId, String userId) {
         return commentLikeRepository.existsByMaBinhLuanAndIdUser(commentId, userId);
     }
     
 
-    public long getCommentLikeCount(String commentId) {
+    public long getCommentLikeCount(UUID commentId) {
         return commentLikeRepository.countByMaBinhLuan(commentId);
     }
     
@@ -81,14 +81,14 @@ public class CommentService {
         }
         
         Comment comment = new Comment();
-        comment.setMaBinhLuan(UUID.randomUUID().toString());
-        comment.setIdPost(postId);
+        comment.setMaBinhLuan(UUID.randomUUID());
+        comment.setIdPost(UUID.fromString(postId));
         comment.setIdUser(userId);
         comment.setNoiDung(content);
         comment.setNgayBinhLuan(LocalDateTime.now());
         
         if (replyToId != null && !replyToId.isEmpty()) {
-            comment.setMaTraLoi(replyToId);
+            comment.setMaTraLoi(UUID.fromString(replyToId));
         }
         
         return commentRepository.save(comment);
@@ -96,11 +96,13 @@ public class CommentService {
 
 
     public List<Comment> getParentComments(String postId) {
-        return commentRepository.findByIdPostAndMaTraLoiIsNullOrderByNgayBinhLuanDesc(postId);
+        UUID postUuid = UUID.fromString(postId);
+        return commentRepository.findByIdPostAndMaTraLoiIsNullOrderByNgayBinhLuanDesc(postUuid);
     }
 
 
     public List<Comment> getReplies(String commentId) {
-        return commentRepository.findByMaTraLoi(commentId);
+        UUID commentUuid = UUID.fromString(commentId);
+        return commentRepository.findByMaTraLoi(commentUuid);
     }
 }

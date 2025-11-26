@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
+import java.util.UUID;
 
 import java.time.LocalDateTime;
 
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 public class FriendRequest {
     @Id
     @Column(name = "ma_yeu_cau")
-    private String maYeuCau;
+    private UUID maYeuCau;
 
     @Column(name = "ma_nguoi_gui")
     private String maNguoiGui;

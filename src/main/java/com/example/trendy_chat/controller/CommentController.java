@@ -36,7 +36,8 @@ public class CommentController {
     @GetMapping("/{postId}/comments")
     public ResponseEntity<?> getComments(@PathVariable String postId) {
         try {
-            List<Comment> comments = commentRepository.findByIdPostAndMaTraLoiIsNullAndAnBinhLuanFalseOrderByNgayBinhLuanDesc(postId);
+            UUID postUuid = UUID.fromString(postId);
+            List<Comment> comments = commentRepository.findByIdPostAndMaTraLoiIsNullAndAnBinhLuanFalseOrderByNgayBinhLuanDesc(postUuid);
             
             // Map comments with user info and like counts, including replies
             List<Map<String, Object>> response = comments.stream().map(comment -> {
@@ -99,21 +100,22 @@ public class CommentController {
             }
 
             // Verify post exists
-            Optional<Post> postOpt = postRepository.findById(postId);
+            UUID postUuid = UUID.fromString(postId);
+            Optional<Post> postOpt = postRepository.findById(postUuid);
             if (postOpt.isEmpty()) {
                 return ResponseEntity.status(404).body("Post not found");
             }
 
             Comment comment = new Comment();
-            comment.setMaBinhLuan(UUID.randomUUID().toString());
-            comment.setIdPost(postId);
+            comment.setMaBinhLuan(UUID.randomUUID());
+            comment.setIdPost(UUID.fromString(postId));
             comment.setIdUser(userId);
             comment.setNoiDung(content);
             comment.setNgayBinhLuan(LocalDateTime.now());
             
             // Set parent comment if this is a reply
             if (replyToId != null && !replyToId.isEmpty()) {
-                comment.setMaTraLoi(replyToId);
+                comment.setMaTraLoi(UUID.fromString(replyToId));
                 System.out.println(" Saving reply comment:");
                 System.out.println("   - ReplyToId: " + replyToId);
                 System.out.println("   - ReplyToSender: " + replyToSender);
@@ -153,7 +155,8 @@ public class CommentController {
     @GetMapping("/{postId}/comment/{commentId}/replies")
     public ResponseEntity<?> getCommentReplies(@PathVariable String commentId) {
         try {
-            List<Comment> replies = commentRepository.findByMaTraLoiAndAnBinhLuanFalse(commentId);
+            UUID commentUuid = UUID.fromString(commentId);
+            List<Comment> replies = commentRepository.findByMaTraLoiAndAnBinhLuanFalse(commentUuid);
             
             List<Map<String, Object>> response = replies.stream().map(reply -> {
                 Map<String, Object> dto = new HashMap<>();
@@ -189,11 +192,12 @@ public class CommentController {
             }
 
             // Verify comment exists
-            if (!commentRepository.existsById(commentId)) {
+            UUID commentUuid = UUID.fromString(commentId);
+            if (!commentRepository.existsById(commentUuid)) {
                 return ResponseEntity.status(404).body("Comment not found");
             }
 
-            commentService.likeComment(commentId, userId);
+            commentService.likeComment(commentUuid, userId);
             return ResponseEntity.ok("Comment liked");
         } catch (Exception e) {
             e.printStackTrace();
@@ -213,7 +217,8 @@ public class CommentController {
                 return ResponseEntity.status(401).body("Unauthorized");
             }
 
-            commentService.unlikeComment(commentId, userId);
+            UUID commentUuid = UUID.fromString(commentId);
+            commentService.unlikeComment(commentUuid, userId);
             return ResponseEntity.ok("Comment unliked");
         } catch (Exception e) {
             e.printStackTrace();
@@ -233,7 +238,8 @@ public class CommentController {
                 return ResponseEntity.status(401).body("Unauthorized");
             }
 
-            boolean liked = commentService.isCommentLikedByUser(commentId, userId);
+            UUID commentUuid = UUID.fromString(commentId);
+            boolean liked = commentService.isCommentLikedByUser(commentUuid, userId);
             Map<String, Object> response = new HashMap<>();
             response.put("liked", liked);
             return ResponseEntity.ok(response);
@@ -248,7 +254,8 @@ public class CommentController {
             @PathVariable String postId,
             @PathVariable String commentId) {
         try {
-            long likesCount = commentLikeRepository.countByMaBinhLuan(commentId);
+            UUID commentUuid = UUID.fromString(commentId);
+            long likesCount = commentLikeRepository.countByMaBinhLuan(commentUuid);
             Map<String, Object> response = new HashMap<>();
             response.put("likesCount", likesCount);
             return ResponseEntity.ok(response);
@@ -269,7 +276,8 @@ public class CommentController {
                 return ResponseEntity.status(401).body("Unauthorized");
             }
 
-            Optional<Comment> commentOpt = commentRepository.findById(commentId);
+            UUID commentUuid = UUID.fromString(commentId);
+            Optional<Comment> commentOpt = commentRepository.findById(commentUuid);
             if (commentOpt.isEmpty()) {
                 return ResponseEntity.status(404).body("Comment not found");
             }
@@ -279,21 +287,22 @@ public class CommentController {
             // Check if user is comment author
             if (!comment.getIdUser().equals(userId)) {
                 // Check if user is post owner
-                Optional<Post> postOpt = postRepository.findById(postId);
+                Optional<Post> postOpt = postRepository.findById(comment.getIdPost());
                 if (postOpt.isEmpty() || !postOpt.get().getIdUser().equals(userId)) {
                     return ResponseEntity.status(403).body("Forbidden - only comment author or post owner can delete");
                 }
             }
 
             // Check if this is a top-level comment (no parent)
-            boolean isTopLevel = comment.getMaTraLoi() == null || comment.getMaTraLoi().isEmpty();
+            boolean isTopLevel = comment.getMaTraLoi() == null;
             
             // Delete comment with all its replies and likes
-            commentService.deleteCommentWithReplies(commentId);
+            commentService.deleteCommentWithReplies(commentUuid);
             
             // Update commentsCount in post (only for top-level comments)
             if (isTopLevel) {
-                Optional<Post> postOpt = postRepository.findById(postId);
+                UUID postUuid = UUID.fromString(postId);
+                Optional<Post> postOpt = postRepository.findById(postUuid);
                 if (postOpt.isPresent()) {
                     Post post = postOpt.get();
                     post.setCommentsCount(Math.max(0, (post.getCommentsCount() != null ? post.getCommentsCount() : 0) - 1));
@@ -322,7 +331,8 @@ public class CommentController {
                 return ResponseEntity.status(401).body("Unauthorized");
             }
 
-            Optional<Comment> commentOpt = commentRepository.findById(commentId);
+            UUID commentUuid = UUID.fromString(commentId);
+            Optional<Comment> commentOpt = commentRepository.findById(commentUuid);
             if (commentOpt.isEmpty()) {
                 return ResponseEntity.status(404).body("Comment not found");
             }

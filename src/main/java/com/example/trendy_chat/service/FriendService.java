@@ -22,7 +22,7 @@ public class FriendService {
         this.userRepo = userRepo;
     }
 
-    public Optional<FriendRequest> findById(String id) {
+    public Optional<FriendRequest> findById(UUID id) {
         return friendRepo.findById(id);
     }
 
@@ -56,7 +56,7 @@ public class FriendService {
         }
 
         FriendRequest f = new FriendRequest();
-        f.setMaYeuCau(UUID.randomUUID().toString());
+        f.setMaYeuCau(UUID.randomUUID());
         f.setMaNguoiGui(from);
         f.setMaNguoiNhan(to);
         f.setTrangThai("CHO_DUYET");
@@ -78,6 +78,7 @@ public class FriendService {
 
 
     public int cleanupDuplicateRelations() {
+        // No UUID conversion needed here - it's an internal cleanup operation
         List<FriendRequest> duplicates = friendRepo.findDuplicateBidirectionalRelations();
 
         if (duplicates.isEmpty()) {
@@ -157,13 +158,15 @@ public class FriendService {
     }
 
     public FriendRequest accept(String maYeuCau) {
-        FriendRequest fr = friendRepo.findById(maYeuCau).orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu"));
+        UUID maYeuCauUuid = UUID.fromString(maYeuCau);
+        FriendRequest fr = friendRepo.findById(maYeuCauUuid).orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu"));
         fr.setTrangThai("XAC_NHAN");
         return friendRepo.save(fr);
     }
 
     public FriendRequest reject(String maYeuCau) {
-        FriendRequest fr = friendRepo.findById(maYeuCau).orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu"));
+        UUID maYeuCauUuid = UUID.fromString(maYeuCau);
+        FriendRequest fr = friendRepo.findById(maYeuCauUuid).orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu"));
         fr.setTrangThai("TU_CHOI");
         return friendRepo.save(fr);
     }
@@ -265,7 +268,8 @@ public class FriendService {
 
 
     public FriendRequest acceptAndSync(String maYeuCau) {
-        FriendRequest fr = friendRepo.findById(maYeuCau)
+        UUID maYeuCauUuid = UUID.fromString(maYeuCau);
+        FriendRequest fr = friendRepo.findById(maYeuCauUuid)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu"));
 
         fr.setTrangThai("XAC_NHAN");

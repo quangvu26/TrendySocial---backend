@@ -6,8 +6,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.UUID;
 
-public interface ChattingGroupRepository extends JpaRepository<TinNhanNhom, String> {
+public interface ChattingGroupRepository extends JpaRepository<TinNhanNhom, UUID> {
     List<TinNhanNhom> findByMaNhomOrderByNgayGuiAsc(String maNhom);
     Page<TinNhanNhom> findByMaNhomOrderByNgayGuiAsc(String maNhom, Pageable pageable);
 

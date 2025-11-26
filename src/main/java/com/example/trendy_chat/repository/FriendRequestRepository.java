@@ -8,9 +8,10 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface FriendRequestRepository extends JpaRepository<FriendRequest, String> {
+public interface FriendRequestRepository extends JpaRepository<FriendRequest, UUID> {
     // Basic queries
     boolean existsByMaNguoiGuiAndMaNguoiNhan(String from, String to);
     

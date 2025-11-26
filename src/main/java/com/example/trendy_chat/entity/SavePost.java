@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.UUID;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -17,8 +18,8 @@ import java.time.LocalDateTime;
 public class SavePost {
     
     @Id
-    @Column(name = "id_post", length = 100)
-    private String idPost;
+    @Column(name = "id_post")
+    private UUID idPost;
     
     @Id
     @Column(name = "id_user", length = 100)
@@ -39,7 +40,7 @@ public class SavePost {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class SavePostId implements Serializable {
-        private String idPost;
+        private UUID idPost;
         private String idUser;
     }
 }

@@ -47,7 +47,7 @@ public class BlockController {
         }
 
         BlockList block = new BlockList();
-        block.setMaChan(UUID.randomUUID().toString());
+        block.setMaChan(UUID.randomUUID());
         block.setMaNguoiChan(blockerId);
         block.setMaNguoiBiChan(blockedId);
         block.setNgayChan(LocalDateTime.now());

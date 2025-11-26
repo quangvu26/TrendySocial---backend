@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.UUID;
 
 import java.time.LocalDateTime;
 
@@ -15,8 +16,8 @@ import java.time.LocalDateTime;
 public class BlockList {
     
     @Id
-    @Column(name = "ma_chan", length = 100)
-    private String maChan;
+    @Column(name = "ma_chan")
+    private UUID maChan;
     
     @Column(name = "ma_nguoi_chan", length = 100, nullable = false)
     private String maNguoiChan;

@@ -9,8 +9,9 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface TinNhanCaNhanRepository extends JpaRepository<TinNhanCaNhan, String> {
+public interface TinNhanCaNhanRepository extends JpaRepository<TinNhanCaNhan, UUID> {
     List<TinNhanCaNhan> findByMaNhomSoloOrderByNgayGuiAsc(String maNhomSolo);
     
     List<TinNhanCaNhan> findByMaNhomSoloAndGhimTrueOrderByNgayGuiDesc(String maNhomSolo);

@@ -5,9 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface SharePostRepository extends JpaRepository<SharePost, String> {
+public interface SharePostRepository extends JpaRepository<SharePost, UUID> {
     List<SharePost> findByIdUserOrderByNgayChiaSeDesc(String idUser);
-    List<SharePost> findByIdPost(String idPost);
+    List<SharePost> findByIdPost(UUID idPost);
 }

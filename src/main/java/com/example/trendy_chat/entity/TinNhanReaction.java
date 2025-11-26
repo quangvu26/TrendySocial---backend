@@ -2,6 +2,7 @@ package com.example.trendy_chat.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "tin_nhan_reaction")
@@ -9,10 +10,10 @@ public class TinNhanReaction {
     
     @Id
     @Column(name = "id")
-    private String id;
+    private UUID id;
     
     @Column(name = "ma_tin_nhan", nullable = false)
-    private String maTinNhan;
+    private UUID maTinNhan;
     
     @Column(name = "id_user", nullable = false)
     private String idUser;
@@ -25,8 +26,8 @@ public class TinNhanReaction {
     
     @PrePersist
     public void prePersist() {
-        if (id == null || id.isEmpty()) {
-            id = java.util.UUID.randomUUID().toString();
+        if (id == null) {
+            id = UUID.randomUUID();
         }
         if (ngayTao == null) {
             ngayTao = LocalDateTime.now();
@@ -34,19 +35,19 @@ public class TinNhanReaction {
     }
 
     // Getters and Setters
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
-    public String getMaTinNhan() {
+    public UUID getMaTinNhan() {
         return maTinNhan;
     }
 
-    public void setMaTinNhan(String maTinNhan) {
+    public void setMaTinNhan(UUID maTinNhan) {
         this.maTinNhan = maTinNhan;
     }
 

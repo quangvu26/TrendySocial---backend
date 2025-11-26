@@ -419,13 +419,14 @@ public class ChatController {
       try {
         System.out.println("🗑️ Deleting message: " + messageId);
         
-        Optional<TinNhanCaNhan> msgOpt = privateRepo.findById(messageId);
+        UUID messageUuid = UUID.fromString(messageId);
+        Optional<TinNhanCaNhan> msgOpt = privateRepo.findById(messageUuid);
         if (msgOpt.isPresent()) {
           TinNhanCaNhan msg = msgOpt.get();
           if (!msg.getMaNguoiGui().equals(userId)) {
             return ResponseEntity.status(403).body("Cannot delete message");
           }
-          privateRepo.deleteById(messageId);
+          privateRepo.deleteById(messageUuid);
         }
         
         return ResponseEntity.ok(Map.of("message", "Message deleted"));
@@ -438,11 +439,12 @@ public class ChatController {
 
     @PostMapping("/message/{messageId}/hide")
     public ResponseEntity<?> hideMessage(@PathVariable String messageId, @RequestParam String userId) {
+        UUID messageUuid = UUID.fromString(messageId);
         try {
             System.out.println("👁️ Hide message: " + messageId + " for user: " + userId);
             
             // Mark message as deleted (hidden) for the user
-            Optional<TinNhanCaNhan> msgOpt = privateRepo.findById(messageId);
+            Optional<TinNhanCaNhan> msgOpt = privateRepo.findById(messageUuid);
             if (msgOpt.isPresent()) {
                 TinNhanCaNhan msg = msgOpt.get();
                 privateRepo.save(msg);
@@ -510,11 +512,12 @@ public class ChatController {
     @Transactional
     @PostMapping("/private/pin/{messageId}")
     public ResponseEntity<?> pinPrivateMessage(@PathVariable String messageId) {
+        UUID messageUuid = UUID.fromString(messageId);
         try {
             System.out.println("📌 Pin private message: " + messageId);
             
             // Tìm bằng maTinNhan
-            Optional<TinNhanCaNhan> msgOpt = privateRepo.findById(messageId);
+            Optional<TinNhanCaNhan> msgOpt = privateRepo.findById(messageUuid);
             if (!msgOpt.isPresent()) {
                 System.out.println("❌ Message not found by ID: " + messageId);
                 return ResponseEntity.status(404).body(Map.of("error", "Tin nhắn không tồn tại"));
@@ -543,11 +546,12 @@ public class ChatController {
     @Transactional
     @PostMapping("/private/unpin/{messageId}")
     public ResponseEntity<?> unpinPrivateMessage(@PathVariable String messageId) {
+        UUID messageUuid = UUID.fromString(messageId);
         try {
             System.out.println("📌 Unpin private message: " + messageId);
             
             // Tìm bằng maTinNhan
-            Optional<TinNhanCaNhan> msgOpt = privateRepo.findById(messageId);
+            Optional<TinNhanCaNhan> msgOpt = privateRepo.findById(messageUuid);
             if (!msgOpt.isPresent()) {
                 System.out.println("❌ Message not found by ID: " + messageId);
                 return ResponseEntity.status(404).body(Map.of("error", "Tin nhắn không tồn tại"));
@@ -584,11 +588,12 @@ public class ChatController {
             System.out.println("🎯 Group React: messageId=" + messageId + ", userId=" + userId + ", reaction=" + reactionName);
             
             // Check if user already reacted to this message
-            var existingReaction = reactionRepo.findByMaTinNhanAndIdUser(messageId, userId);
+            UUID messageUuid = UUID.fromString(messageId);
+            var existingReaction = reactionRepo.findByMaTinNhanAndIdUser(messageUuid, userId);
             
             if (existingReaction.isPresent()) {
                 // User already reacted - remove the reaction (toggle off)
-                reactionRepo.deleteByMaTinNhanAndIdUser(messageId, userId);
+                reactionRepo.deleteByMaTinNhanAndIdUser(messageUuid, userId);
                 System.out.println("✅ Group reaction removed (toggled off)");
                 
                 return ResponseEntity.ok(Map.of(
@@ -601,8 +606,8 @@ public class ChatController {
             } else {
                 // First time reacting - add new reaction
                 TinNhanReaction reaction = new TinNhanReaction();
-                reaction.setId(UUID.randomUUID().toString());
-                reaction.setMaTinNhan(messageId);
+                reaction.setId(UUID.randomUUID());
+                reaction.setMaTinNhan(messageUuid);
                 reaction.setIdUser(userId);
                 reaction.setLoaiReaction(reactionName);
                 reaction.setNgayTao(LocalDateTime.now());
@@ -640,12 +645,13 @@ public class ChatController {
             System.out.println("🎯 Private React: messageId=" + messageId + ", userId=" + userId + ", reaction=" + reactionName);
             
             // Check if user already reacted to this message
-            var existingReaction = reactionRepo.findByMaTinNhanAndIdUser(messageId, userId);
+            UUID messageUuid = UUID.fromString(messageId);
+            var existingReaction = reactionRepo.findByMaTinNhanAndIdUser(messageUuid, userId);
             
             if (existingReaction.isPresent()) {
                 // User already reacted - remove the reaction (toggle off)
                 TinNhanReaction existing = existingReaction.get();
-                reactionRepo.deleteByMaTinNhanAndIdUser(messageId, userId);
+                reactionRepo.deleteByMaTinNhanAndIdUser(messageUuid, userId);
                 System.out.println("✅ Reaction removed (toggled off)");
                 
                 return ResponseEntity.ok(Map.of(
@@ -658,8 +664,8 @@ public class ChatController {
             } else {
                 // First time reacting - add new reaction
                 TinNhanReaction reaction = new TinNhanReaction();
-                reaction.setId(UUID.randomUUID().toString());
-                reaction.setMaTinNhan(messageId);
+                reaction.setId(UUID.randomUUID());
+                reaction.setMaTinNhan(messageUuid);
                 reaction.setIdUser(userId);
                 reaction.setLoaiReaction(reactionName);
                 reaction.setNgayTao(LocalDateTime.now());
@@ -714,8 +720,9 @@ public class ChatController {
 
     // ...existing code...
     public ResponseEntity<?> getMessageReactions(@PathVariable String messageId) {
+        UUID messageUuid = UUID.fromString(messageId);
         try {
-            List<TinNhanReaction> reactions = reactionRepo.findByMaTinNhan(messageId);
+            List<TinNhanReaction> reactions = reactionRepo.findByMaTinNhan(messageUuid);
             
             // Group by reaction type
             Map<String, List<String>> grouped = new HashMap<>();
@@ -736,8 +743,9 @@ public class ChatController {
      */
     @GetMapping("/group/reactions/{messageId}")
     public ResponseEntity<?> getGroupMessageReactions(@PathVariable String messageId) {
+        UUID messageUuid = UUID.fromString(messageId);
         try {
-            List<TinNhanReaction> reactions = reactionRepo.findByMaTinNhan(messageId);
+            List<TinNhanReaction> reactions = reactionRepo.findByMaTinNhan(messageUuid);
             
             Map<String, List<String>> grouped = new HashMap<>();
             for (TinNhanReaction r : reactions) {
@@ -764,7 +772,8 @@ public class ChatController {
             String toUserId = (String) body.get("toUserId");
             
             // Get original message to get replyToSender name
-            TinNhanCaNhan originalMsg = privateRepo.findById(messageId).orElse(null);
+            UUID messageUuid = UUID.fromString(messageId);
+            TinNhanCaNhan originalMsg = privateRepo.findById(messageUuid).orElse(null);
             if (originalMsg == null) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Tin nhắn gốc không tồn tại"));
             }
@@ -815,9 +824,10 @@ public class ChatController {
 
     @PostMapping("/group/pin/{messageId}")
     public ResponseEntity<?> pinGroupMessage(@PathVariable String messageId) {
+        UUID messageUuid = UUID.fromString(messageId);
         try {
             System.out.println("📌 Pin group message: " + messageId);
-            Optional<?> msgOpt = groupRepo.findById(messageId);
+            Optional<?> msgOpt = groupRepo.findById(messageUuid);
             
             if (!msgOpt.isPresent()) {
                 System.out.println("❌ Message not found: " + messageId);
@@ -837,9 +847,10 @@ public class ChatController {
 
     @PostMapping("/group/unpin/{messageId}")
     public ResponseEntity<?> unpinGroupMessage(@PathVariable String messageId) {
+        UUID messageUuid = UUID.fromString(messageId);
         try {
             System.out.println("📌 Unpin group message: " + messageId);
-            Optional<?> msgOpt = groupRepo.findById(messageId);
+            Optional<?> msgOpt = groupRepo.findById(messageUuid);
             
             if (!msgOpt.isPresent()) {
                 System.out.println("❌ Message not found: " + messageId);
@@ -862,15 +873,16 @@ public class ChatController {
      */
     @DeleteMapping("/group-message/{messageId}")
     public ResponseEntity<?> deleteGroupMessageOwner(@PathVariable String messageId, @RequestParam String userId) {
+        UUID messageUuid = UUID.fromString(messageId);
         try {
             System.out.println("🗑️ Deleting group message: " + messageId);
-            Optional<?> msgOpt = groupRepo.findById(messageId);
+            Optional<?> msgOpt = groupRepo.findById(messageUuid);
             if (msgOpt.isPresent()) {
                 TinNhanNhom groupMsg = (TinNhanNhom) msgOpt.get();
                 if (!groupMsg.getMaNguoiGui().equals(userId)) {
                     return ResponseEntity.status(403).body(Map.of("error", "Cannot delete"));
                 }
-                groupRepo.deleteById(messageId);
+                groupRepo.deleteById(messageUuid);
                 System.out.println("✅ Group message deleted");
             }
             return ResponseEntity.ok(Map.of("success", true));
@@ -880,9 +892,10 @@ public class ChatController {
     }
     @PostMapping("/group-message/{messageId}/hide")
     public ResponseEntity<?> hideGroupMessagePermanent(@PathVariable String messageId, @RequestParam String userId) {
+        UUID messageUuid = UUID.fromString(messageId);
         try {
             System.out.println("Hiding group message: " + messageId);
-            Optional<?> msgOpt = groupRepo.findById(messageId);
+            Optional<?> msgOpt = groupRepo.findById(messageUuid);
             if (msgOpt.isPresent()) {
                 TinNhanNhom groupMsg = (TinNhanNhom) msgOpt.get();
                 groupRepo.save(groupMsg);
@@ -895,9 +908,10 @@ public class ChatController {
     }
     @DeleteMapping("/private/message/{messageId}")
     public ResponseEntity<?> deletePrivateMessage(@PathVariable String messageId, @RequestParam String userId) {
+        UUID messageUuid = UUID.fromString(messageId);
         try {
             System.out.println("🗑DELETE Private message: " + messageId + " by user: " + userId);
-            Optional<TinNhanCaNhan> msgOpt = privateRepo.findById(messageId);
+            Optional<TinNhanCaNhan> msgOpt = privateRepo.findById(messageUuid);
             
             if (!msgOpt.isPresent()) {
                 System.out.println("Message not found: " + messageId);
@@ -911,7 +925,7 @@ public class ChatController {
             }
             
             // Hard delete
-            privateRepo.deleteById(messageId);
+            privateRepo.deleteById(messageUuid);
             System.out.println(" Private message deleted permanently");
             return ResponseEntity.ok(Map.of("success", true, "message", "Đã xóa tin nhắn vĩnh viễn"));
         } catch (Exception e) {
@@ -927,9 +941,10 @@ public class ChatController {
      */
     @DeleteMapping("/group/message/{messageId}")
     public ResponseEntity<?> deleteGroupMessage(@PathVariable String messageId, @RequestParam String userId) {
+        UUID messageUuid = UUID.fromString(messageId);
         try {
             System.out.println(" DELETE Group message: " + messageId + " by user: " + userId);
-            Optional<?> msgOpt = groupRepo.findById(messageId);
+            Optional<?> msgOpt = groupRepo.findById(messageUuid);
             
             if (!msgOpt.isPresent()) {
                 System.out.println(" Message not found: " + messageId);
@@ -943,7 +958,7 @@ public class ChatController {
             }
             
             // Hard delete
-            groupRepo.deleteById(messageId);
+            groupRepo.deleteById(messageUuid);
             System.out.println(" Group message deleted permanently");
             return ResponseEntity.ok(Map.of("success", true, "message", "Đã xóa tin nhắn vĩnh viễn"));
         } catch (Exception e) {

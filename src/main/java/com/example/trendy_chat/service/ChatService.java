@@ -105,7 +105,7 @@ public class ChatService {
             
             // Create message
             TinNhanCaNhan m = new TinNhanCaNhan();
-            m.setMaTinNhan(UUID.randomUUID().toString());
+            m.setMaTinNhan(UUID.randomUUID());
             m.setMaNguoiGui(dto.getMaNguoiGui());
             m.setMaNguoiNhan(dto.getMaNguoiNhan());
             m.setMaNhomSolo(soloChat.getIdSoloChat()); // Link to solo_chat
@@ -116,7 +116,7 @@ public class ChatService {
             
             // Save reply information if present
             if (dto.getReplyToId() != null && !dto.getReplyToId().isEmpty()) {
-                m.setReplyToId(dto.getReplyToId());
+                m.setReplyToId(UUID.fromString(dto.getReplyToId()));
                 m.setReplyToContent(dto.getReplyToContent());
                 m.setReplyToSender(dto.getReplyToSender());
                 System.out.println("✅ Private Reply saved: messageId=" + m.getMaTinNhan() + 
@@ -198,6 +198,7 @@ public class ChatService {
     }
 
     public List<TinNhanNhom> getGroupHistory(String maNhom) {
+        UUID maNhomUuid = UUID.fromString(maNhom);
         return groupRepo.findByMaNhomOrderByNgayGuiAsc(maNhom);
     }
     public TinNhanNhom saveGroupMessage(GroupMessage dto) {
@@ -208,7 +209,7 @@ public class ChatService {
         }
 
         TinNhanNhom g = new TinNhanNhom();
-        g.setMaTinNhan(UUID.randomUUID().toString());
+        g.setMaTinNhan(UUID.randomUUID());
         g.setMaNhom(dto.getMaNhom());
         g.setMaNguoiGui(dto.getMaNguoiGui());
         g.setNoiDung(dto.getNoiDung());
@@ -217,7 +218,7 @@ public class ChatService {
 
         // Save reply information if present
         if (dto.getReplyToId() != null && !dto.getReplyToId().isEmpty()) {
-            g.setReplyToId(dto.getReplyToId());
+            g.setReplyToId(UUID.fromString(dto.getReplyToId()));
             g.setReplyToContent(dto.getReplyToContent());
             g.setReplyToSender(dto.getReplyToSender());
             System.out.println("✅ Group Reply saved: messageId=" + g.getMaTinNhan() + 

@@ -63,7 +63,7 @@ public class PostController {
             System.out.println("📎 File: " + (file != null ? file.getOriginalFilename() : "null"));
 
             Post post = new Post();
-            post.setIdPost(UUID.randomUUID().toString());
+            post.setIdPost(UUID.randomUUID());
             post.setIdUser(userId);
             post.setNoiDung(noiDung);
             String privacyToSave = privacy;
@@ -193,7 +193,8 @@ public class PostController {
     @GetMapping("/{postId}")
     public ResponseEntity<?> getPostById(@PathVariable String postId) {
         try {
-            Optional<Post> post = postRepository.findById(postId);
+            UUID postUuid = UUID.fromString(postId);
+            Optional<Post> post = postRepository.findById(postUuid);
             if (post.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
@@ -212,7 +213,7 @@ public class PostController {
             response.put("cheDoRiengTu", privacy);
             response.put("ngayDang", p.getNgayDang());
             // Count likes from DB
-            long likesCount = postLikeRepository.findByIdPost(postId).size();
+            long likesCount = postLikeRepository.findByIdPost(postUuid).size();
             response.put("likesCount", likesCount);
             System.out.println("📊 Post " + postId + " likes from DB: " + likesCount);
             
@@ -233,21 +234,22 @@ public class PostController {
                 return ResponseEntity.status(401).body("Unauthorized");
             }
 
-            PostLike.PostLikeId id = new PostLike.PostLikeId(postId, userId);
+            UUID postUuid = UUID.fromString(postId);
+            PostLike.PostLikeId id = new PostLike.PostLikeId(postUuid, userId);
             int likesCount = 0;
             
             if (!postLikeRepository.existsById(id)) {
                 PostLike like = new PostLike();
-                like.setIdPost(postId);
+                like.setIdPost(postUuid);
                 like.setIdUser(userId);
                 like.setNgayThich(LocalDateTime.now());
                 postLikeRepository.save(like);
                 
                 // Count total likes
-                likesCount = postLikeRepository.findByIdPost(postId).size();
+                likesCount = postLikeRepository.findByIdPost(postUuid).size();
                 
                 // Update Post.likesCount in database
-                Optional<Post> postOpt = postRepository.findById(postId);
+                Optional<Post> postOpt = postRepository.findById(postUuid);
                 if (postOpt.isPresent()) {
                     Post post = postOpt.get();
                     post.setLikesCount(likesCount);
@@ -273,7 +275,7 @@ public class PostController {
                     }
                 }
             } else {
-                likesCount = postLikeRepository.findByIdPost(postId).size();
+                likesCount = postLikeRepository.findByIdPost(postUuid).size();
             }
             
             Map<String, Object> response = new HashMap<>();
@@ -296,15 +298,16 @@ public class PostController {
                 return ResponseEntity.status(401).body("Unauthorized");
             }
 
-            PostLike.PostLikeId id = new PostLike.PostLikeId(postId, userId);
+            UUID postUuid = UUID.fromString(postId);
+            PostLike.PostLikeId id = new PostLike.PostLikeId(postUuid, userId);
             if (postLikeRepository.existsById(id)) {
                 postLikeRepository.deleteById(id);
                 
                 // Count remaining likes
-                int likesCount = postLikeRepository.findByIdPost(postId).size();
+                int likesCount = postLikeRepository.findByIdPost(postUuid).size();
                 
                 // Update Post.likesCount in database
-                Optional<Post> postOpt = postRepository.findById(postId);
+                Optional<Post> postOpt = postRepository.findById(postUuid);
                 if (postOpt.isPresent()) {
                     Post post = postOpt.get();
                     post.setLikesCount(likesCount);
@@ -329,10 +332,10 @@ public class PostController {
                 return ResponseEntity.status(401).body("Unauthorized");
             }
 
-            SavePost.SavePostId id = new SavePost.SavePostId(postId, userId);
+            SavePost.SavePostId id = new SavePost.SavePostId(UUID.fromString(postId), userId);
             if (!savePostRepository.existsById(id)) {
                 SavePost save = new SavePost();
-                save.setIdPost(postId);
+                save.setIdPost(UUID.fromString(postId));
                 save.setIdUser(userId);
                 save.setNgayLuu(LocalDateTime.now());
                 savePostRepository.save(save);
@@ -354,7 +357,8 @@ public class PostController {
                 return ResponseEntity.status(401).body("Unauthorized");
             }
 
-            SavePost.SavePostId id = new SavePost.SavePostId(postId, userId);
+            UUID postUuid = UUID.fromString(postId);
+            SavePost.SavePostId id = new SavePost.SavePostId(postUuid, userId);
             savePostRepository.deleteById(id);
             return ResponseEntity.ok("Post unsaved");
         } catch (Exception e) {
@@ -375,8 +379,8 @@ public class PostController {
             }
 
             SharePost share = new SharePost();
-            share.setMaChiaSe(UUID.randomUUID().toString());
-            share.setIdPost(postId);
+            share.setMaChiaSe(UUID.randomUUID());
+            share.setIdPost(UUID.fromString(postId));
             share.setIdUser(userId);
             share.setGhiChu(ghiChu);
             share.setNgayChiaSe(LocalDateTime.now());
@@ -438,26 +442,27 @@ public class PostController {
                 return ResponseEntity.status(401).body("Unauthorized");
             }
 
-            Optional<Post> post = postRepository.findById(postId);
+            UUID postUuid = UUID.fromString(postId);
+            Optional<Post> post = postRepository.findById(postUuid);
             if (post.isEmpty() || !post.get().getIdUser().equals(userId)) {
                 return ResponseEntity.status(403).body("Forbidden");
             }
 
             // Delete related data first (cascade delete)
             // 1. Delete all likes for this post
-            postLikeRepository.deleteAll(postLikeRepository.findByIdPost(postId));
+            postLikeRepository.deleteAll(postLikeRepository.findByIdPost(postUuid));
             System.out.println("✅ Deleted all likes for post: " + postId);
             
             // 2. Delete all saves for this post
-            savePostRepository.deleteAll(savePostRepository.findByIdPost(postId));
+            savePostRepository.deleteAll(savePostRepository.findByIdPost(postUuid));
             System.out.println("✅ Deleted all saves for post: " + postId);
             
             // 3. Delete all shares for this post
-            sharePostRepository.deleteAll(sharePostRepository.findByIdPost(postId));
+            sharePostRepository.deleteAll(sharePostRepository.findByIdPost(postUuid));
             System.out.println("✅ Deleted all shares for post: " + postId);
             
             // Delete comments first (cascade delete)
-            List<Comment> comments = commentRepository.findByIdPost(postId);
+            List<Comment> comments = commentRepository.findByIdPost(postUuid);
             for (Comment comment : comments) {
                 // Delete comment likes first
                 commentLikeRepository.deleteAll(
@@ -468,7 +473,7 @@ public class PostController {
             System.out.println("✅ Deleted all comments for post: " + postId);
 
             // Finally delete the post
-            postRepository.deleteById(postId);
+            postRepository.deleteById(postUuid);
             System.out.println("✅ Post deleted permanently: " + postId);
 
             return ResponseEntity.ok("Post deleted");
@@ -489,7 +494,8 @@ public class PostController {
                 return ResponseEntity.status(401).body("Unauthorized");
             }
 
-            boolean liked = postLikeRepository.existsByIdPostAndIdUser(postId, userId);
+            UUID postUuid = UUID.fromString(postId);
+            boolean liked = postLikeRepository.existsByIdPostAndIdUser(postUuid, userId);
             Map<String, Object> response = new HashMap<>();
             response.put("liked", liked);
             return ResponseEntity.ok(response);
@@ -509,7 +515,8 @@ public class PostController {
                 return ResponseEntity.status(401).body("Unauthorized");
             }
 
-            boolean saved = savePostRepository.existsByIdPostAndIdUser(postId, userId);
+            UUID postUuid = UUID.fromString(postId);
+            boolean saved = savePostRepository.existsByIdPostAndIdUser(postUuid, userId);
             Map<String, Object> response = new HashMap<>();
             response.put("saved", saved);
             return ResponseEntity.ok(response);
@@ -522,7 +529,8 @@ public class PostController {
     @GetMapping("/{postId}/likes-count")
     public ResponseEntity<?> getLikesCount(@PathVariable String postId) {
         try {
-            long count = postLikeRepository.findByIdPost(postId).size();
+            UUID postUuid = UUID.fromString(postId);
+            long count = postLikeRepository.findByIdPost(postUuid).size();
             Map<String, Object> response = new HashMap<>();
             response.put("count", count);
             return ResponseEntity.ok(response);
@@ -542,7 +550,8 @@ public class PostController {
                 return ResponseEntity.status(401).body("Unauthorized");
             }
 
-            Optional<Post> postOpt = postRepository.findById(postId);
+            UUID postUuid = UUID.fromString(postId);
+            Optional<Post> postOpt = postRepository.findById(postUuid);
             if (postOpt.isEmpty()) {
                 return ResponseEntity.status(404).body("Post not found");
             }
@@ -576,7 +585,8 @@ public class PostController {
                 return ResponseEntity.status(401).body("Unauthorized");
             }
 
-            Optional<Post> postOpt = postRepository.findById(postId);
+            UUID postUuid = UUID.fromString(postId);
+            Optional<Post> postOpt = postRepository.findById(postUuid);
             if (postOpt.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
