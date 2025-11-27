@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import com.example.trendy_chat.util.CloudinaryUtil;
+import com.cloudinary.utils.ObjectUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -436,6 +438,8 @@ public class ChatController {
     }
 
     // ...existing code...
+        @Autowired
+        private CloudinaryUtil cloudinaryUtil;
 
     @PostMapping("/message/{messageId}/hide")
     public ResponseEntity<?> hideMessage(@PathVariable String messageId, @RequestParam String userId) {
@@ -1024,28 +1028,19 @@ public class ChatController {
                 return ResponseEntity.badRequest().body(Map.of("error", "File quá lớn, tối đa 50MB"));
             }
 
-            // Create uploads directory if not exists
-            java.nio.file.Path uploadDir = java.nio.file.Paths.get("uploads/chat");
-            java.nio.file.Files.createDirectories(uploadDir);
-
-            // Generate unique filename
+            // Upload file to Cloudinary
             String originalFileName = file.getOriginalFilename();
-            String fileExtension = originalFileName != null ? 
-                originalFileName.substring(originalFileName.lastIndexOf(".")) : "";
-            String uniqueFileName = userId + "_" + System.currentTimeMillis() + fileExtension;
-
-            // Save file
-            java.nio.file.Path filePath = uploadDir.resolve(uniqueFileName);
-            java.nio.file.Files.write(filePath, file.getBytes());
-
-            // Return file URL
-            String fileUrl = "/uploads/chat/" + uniqueFileName;
-            
-            System.out.println(" File uploaded: " + uniqueFileName);
-            
+            Map uploadResult = cloudinaryUtil.upload(file.getBytes(), ObjectUtils.asMap(
+                    "resource_type", "auto",
+                    "use_filename", true,
+                    "unique_filename", false,
+                    "overwrite", true
+            ));
+            String url = (String) uploadResult.get("secure_url");
+            System.out.println("✅ Chat file uploaded to Cloudinary: " + url);
             return ResponseEntity.ok(Map.of(
                 "success", true,
-                "fileUrl", fileUrl,
+                "fileUrl", url,
                 "fileName", originalFileName,
                 "fileSize", file.getSize()
             ));

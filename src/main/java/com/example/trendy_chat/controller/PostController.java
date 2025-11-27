@@ -8,10 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import com.example.trendy_chat.util.CloudinaryUtil;
+import com.cloudinary.utils.ObjectUtils;
+
+// ...existing code...
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,7 +43,10 @@ public class PostController {
     @Autowired
     private CommentLikeRepository commentLikeRepository;
 
-    private static final String UPLOAD_DIR = "uploads/posts";
+    @Autowired
+    private CloudinaryUtil cloudinaryUtil;
+
+    // Đã chuyển sang dùng Cloudinary, không cần biến upload local
 
     // Create post
     @PostMapping("/create")
@@ -74,20 +77,22 @@ public class PostController {
             post.setCheDoRiengTu(privacyToSave);
             post.setNgayDang(LocalDateTime.now());
 
-            // Handle file upload
+            // Handle file upload with Cloudinary
             if (file != null && !file.isEmpty()) {
-                String fileName = post.getIdPost() + "_" + System.currentTimeMillis() + getFileExtension(file.getOriginalFilename());
-                Path uploadPath = Paths.get(UPLOAD_DIR);
-                Files.createDirectories(uploadPath);
-                Files.write(uploadPath.resolve(fileName), file.getBytes());
-                String filePath = "/uploads/posts/" + fileName;
-                post.setDuongDanAnh(filePath);
-                System.out.println("✅ File saved: " + filePath);
+                Map uploadResult = cloudinaryUtil.upload(file.getBytes(), ObjectUtils.asMap(
+                        "resource_type", "auto",
+                        "use_filename", true,
+                        "unique_filename", false,
+                        "overwrite", true
+                ));
+                String url = (String) uploadResult.get("secure_url");
+                post.setDuongDanAnh(url);
+                System.out.println("✅ File uploaded to Cloudinary: " + url);
             }
 
             Post savedPost = postRepository.save(post);
             System.out.println("✅ Post saved: " + savedPost.getIdPost());
-            System.out.println("✅ Image path: " + savedPost.getDuongDanAnh());
+            System.out.println("✅ Image/Media URL: " + savedPost.getDuongDanAnh());
             
             return ResponseEntity.ok(savedPost);
         } catch (Exception e) {
