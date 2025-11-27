@@ -3,6 +3,7 @@ package com.example.trendy_chat.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -17,4 +18,5 @@ public class PrivateMessage {
     private String replyToContent;
     private String replyToSender;
     private String attachments;
+    private UUID maNhomSolo; // optional for compatibility
 }

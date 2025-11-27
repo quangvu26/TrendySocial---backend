@@ -6,13 +6,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class SoloChatDTO {
-    private String maNhomSolo;      // Primary key of solo_chat
+    private UUID maNhomSolo;      // Primary key of solo_chat
     private String maNguoiGui;      // Sender ID (for mapping)
     private String maNguoiNhan;     // Receiver ID (for mapping)
     private String otherUserId;     // ID of the other user in conversation

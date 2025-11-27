@@ -699,7 +699,8 @@ public class ChatController {
     @GetMapping("/private/pinned")
     public ResponseEntity<?> getPinnedPrivateMessages(@RequestParam String maNhomSolo) {
         try {
-            List<TinNhanCaNhan> pinnedMsgs = privateRepo.findByMaNhomSoloAndGhimTrueOrderByNgayGuiDesc(maNhomSolo);
+            java.util.UUID maNhomSoloUuid = java.util.UUID.fromString(maNhomSolo);
+            List<TinNhanCaNhan> pinnedMsgs = privateRepo.findByMaNhomSoloAndGhimTrueOrderByNgayGuiDesc(maNhomSoloUuid);
             System.out.println("📌 Found " + pinnedMsgs.size() + " pinned messages");
             return ResponseEntity.ok(pinnedMsgs);
         } catch (Exception e) {

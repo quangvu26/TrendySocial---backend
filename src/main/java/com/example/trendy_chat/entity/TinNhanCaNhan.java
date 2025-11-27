@@ -39,8 +39,8 @@ public class TinNhanCaNhan {
 
     @Column(name = "tep_dinh_kem", columnDefinition = "TEXT")
     private String tepDinhKem;
-    @Column(name = "ma_nhom_solo")
-    private String maNhomSolo;
+    @Column(name = "ma_nhom_solo", columnDefinition = "UUID")
+    private UUID maNhomSolo;
     @Column(name = "ngay_gui")
     private LocalDateTime ngayGui;
 

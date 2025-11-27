@@ -12,8 +12,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface TinNhanCaNhanRepository extends JpaRepository<TinNhanCaNhan, UUID> {
-    List<TinNhanCaNhan> findByMaNhomSoloOrderByNgayGuiAsc(String maNhomSolo);
-    
-    List<TinNhanCaNhan> findByMaNhomSoloAndGhimTrueOrderByNgayGuiDesc(String maNhomSolo);
-    Optional<TinNhanCaNhan> findTopByMaNhomSoloOrderByNgayGuiDesc(String maNhomSolo);
+    List<TinNhanCaNhan> findByMaNhomSoloOrderByNgayGuiAsc(UUID maNhomSolo);
+
+    List<TinNhanCaNhan> findByMaNhomSoloAndGhimTrueOrderByNgayGuiDesc(UUID maNhomSolo);
+    Optional<TinNhanCaNhan> findTopByMaNhomSoloOrderByNgayGuiDesc(UUID maNhomSolo);
 }

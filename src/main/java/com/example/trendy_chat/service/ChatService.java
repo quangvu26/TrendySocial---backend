@@ -94,26 +94,28 @@ public class ChatService {
             String user2 = dto.getMaNguoiNhan();
             
             // Ensure consistent ordering for lookup
+
             SoloChat soloChat = soloChatRepository
                 .findBetweenUsers(user1, user2)
                 .orElseGet(() -> {
                     SoloChat newSolo = new SoloChat();
                     newSolo.setId_user_1(user1);
                     newSolo.setId_user_2(user2);
+                    // idSoloChat sẽ tự sinh UUID ở @PrePersist
                     return soloChatRepository.save(newSolo);
                 });
-            
+
             // Create message
             TinNhanCaNhan m = new TinNhanCaNhan();
             m.setMaTinNhan(UUID.randomUUID());
             m.setMaNguoiGui(dto.getMaNguoiGui());
             m.setMaNguoiNhan(dto.getMaNguoiNhan());
-            m.setMaNhomSolo(soloChat.getIdSoloChat()); // Link to solo_chat
+            m.setMaNhomSolo(soloChat.getIdSoloChat()); // Link to solo_chat (UUID)
             m.setNoiDung(dto.getNoiDung());
             m.setTepDinhKem(dto.getTepDinhKem());
             m.setNgayGui(LocalDateTime.now());
             m.setDaDoc(false);
-            
+
             // Save reply information if present
             if (dto.getReplyToId() != null && !dto.getReplyToId().isEmpty()) {
                 m.setReplyToId(UUID.fromString(dto.getReplyToId()));
@@ -143,9 +145,9 @@ public class ChatService {
             response.put("replyToContent", saved.getReplyToContent());
             response.put("replyToSender", saved.getReplyToSender());
             response.put("attachments", saved.getAttachments());
-            
+
             messagingTemplate.convertAndSend(conversationTopic, response);
-            
+
             System.out.println("✅ Message broadcast to: " + conversationTopic);
             
             // Create notification for receiver
@@ -191,8 +193,7 @@ public class ChatService {
             return List.of(); // No chat history if solo chat doesn't exist
         }
         
-        String maNhomSolo = soloChat.get().getIdSoloChat();
-        
+        UUID maNhomSolo = soloChat.get().getIdSoloChat();
         // Get all messages from this solo chat, sorted by date
         return privateRepo.findByMaNhomSoloOrderByNgayGuiAsc(maNhomSolo);
     }
