@@ -80,10 +80,14 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     }
 
     private String getFrontendUrl() {
-        // Get first URL from comma-separated list
-        if (frontendUrls != null && !frontendUrls.isEmpty()) {
-            return frontendUrls.split(",")[0].trim();
-        }
+    String env = System.getenv("ENVIRONMENT");
+    if ("production".equals(env)) {
         return "https://trendy-social.vercel.app";
     }
+    
+    if (frontendUrls != null && !frontendUrls.isEmpty()) {
+        return frontendUrls.split(",")[0].trim();
+    }
+    return "https://trendy-social.vercel.app";
+}
 }
