@@ -84,6 +84,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         if (frontendUrls != null && !frontendUrls.isEmpty()) {
             return frontendUrls.split(",")[0].trim();
         }
-        return "http://localhost:5173";
+        return "https://trendy-social.vercel.app";
     }
 }

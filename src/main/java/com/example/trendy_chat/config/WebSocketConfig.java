@@ -10,7 +10,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry){
-        registry.addEndpoint("/ws-chat").setAllowedOrigins("http://localhost:5173","http://localhost:5174","http://localhost:5175","http://localhost:8080").withSockJS();
+        registry.addEndpoint("/ws-chat").setAllowedOrigins("http://localhost:5173","http://localhost:5174","http://localhost:5175","http://localhost:8080","https://trendysocialback.onrender.com","https://trendy-social.vercel.app").withSockJS();
     }
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry){
