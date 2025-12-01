@@ -117,23 +117,18 @@ public class PostController {
                 return ResponseEntity.ok(new ArrayList<>());
             }
             
-            // Filter posts based on privacy and viewer
+            // ✅ FIX LỖI 4: Filter posts by privacy - chỉ show đúng user
+            // Owner sees ALL posts, Viewer sees CONG_KHAI only
             boolean isSameUser = userId.equals(viewerId);
             List<Map<String, Object>> response = new ArrayList<>();
             
             for (Post post : posts) {
                 String privacy = post.getCheDoRiengTu();
                 
-                // Privacy filter logic:
-                // - Owner can always see their own posts (RIENG_TU, BAN_BE, CONG_KHAI)
-                // - Others can only see CONG_KHAI (public)
-                if (!isSameUser && "RIENG_TU".equalsIgnoreCase(privacy)) {
-                    System.out.println("🔒 Skipping private post " + post.getIdPost());
-                    continue; // Skip private posts for non-owners
-                }
-                if (!isSameUser && "BAN_BE".equalsIgnoreCase(privacy)) {
-                    System.out.println("👥 Skipping friend-only post " + post.getIdPost());
-                    continue; // Skip friend-only posts (TODO: check friendship)
+                // ✅ CRITICAL: Nếu không phải owner, chỉ show CONG_KHAI posts
+                if (!isSameUser && ("RIENG_TU".equalsIgnoreCase(privacy) || "BAN_BE".equalsIgnoreCase(privacy))) {
+                    System.out.println("↩️ Skipping private post, privacy: " + privacy);
+                    continue; // Skip private/friend-only posts for non-owners
                 }
                 
                 Map<String, Object> dto = new HashMap<>();

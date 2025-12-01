@@ -5,10 +5,6 @@ import com.example.trendy_chat.dto.UserResponse;
 import com.example.trendy_chat.entity.User;
 
 public class UserMapper {
-    
-    /**
-     * Convert RegisterRequest → User Entity
-     */
     public static User toEntity(RegisterRequest registerUser) {
         User user = new User();
         user.setId(registerUser.getId());

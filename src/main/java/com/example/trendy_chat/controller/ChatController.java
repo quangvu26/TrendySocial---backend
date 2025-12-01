@@ -163,11 +163,6 @@ public class ChatController {
             return ResponseEntity.status(500).body("Error: " + e.getMessage());
         }
     }
-    
-    /**
-     * Create new group chat
-     * POST /trendy/chat/group/create?tenNhom=...&userId=...&memberIds=id1,id2,id3
-     */
     @PostMapping("/group/create")
     public ResponseEntity<?> createGroup(@RequestParam(required = true) String tenNhom,
                                          @RequestParam(required = true) String userId,

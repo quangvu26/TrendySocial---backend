@@ -59,7 +59,7 @@ public class ChatService {
         List<ThanhVienNhom> members = memberRepo.findByMaNhom(userId);
         // Wait, this is wrong - findByMaNhom expects maNhom, not userId
         // Need to get all members where idUser = userId, then get their groups
-        
+
         // Better approach: query all groups and filter by member
         List<GroupChat> allGroups = groupChatRepository.findAll();
         return allGroups.stream()
@@ -76,34 +76,34 @@ public class ChatService {
         if (dto.getMaNguoiNhan() == null || dto.getMaNguoiNhan().trim().isEmpty()) {
             throw new RuntimeException("maNguoiNhan không được để trống");
         }
-        
+
         // Check if blocked (both directions)
         boolean isBlocked = blockRepo.existsByMaNguoiChanAndMaNguoiBiChan(
-            dto.getMaNguoiNhan(), dto.getMaNguoiGui()
+                dto.getMaNguoiNhan(), dto.getMaNguoiGui()
         ) || blockRepo.existsByMaNguoiChanAndMaNguoiBiChan(
-            dto.getMaNguoiGui(), dto.getMaNguoiNhan()
+                dto.getMaNguoiGui(), dto.getMaNguoiNhan()
         );
-        
+
         if (isBlocked) {
             throw new RuntimeException("Không thể gửi tin nhắn cho người dùng này");
         }
-        
+
         try {
             // Auto-create or get solo chat
             String user1 = dto.getMaNguoiGui();
             String user2 = dto.getMaNguoiNhan();
-            
+
             // Ensure consistent ordering for lookup
 
             SoloChat soloChat = soloChatRepository
-                .findBetweenUsers(user1, user2)
-                .orElseGet(() -> {
-                    SoloChat newSolo = new SoloChat();
-                    newSolo.setId_user_1(user1);
-                    newSolo.setId_user_2(user2);
-                    // idSoloChat sẽ tự sinh UUID ở @PrePersist
-                    return soloChatRepository.save(newSolo);
-                });
+                    .findBetweenUsers(user1, user2)
+                    .orElseGet(() -> {
+                        SoloChat newSolo = new SoloChat();
+                        newSolo.setId_user_1(user1);
+                        newSolo.setId_user_2(user2);
+                        // idSoloChat sẽ tự sinh UUID ở @PrePersist
+                        return soloChatRepository.save(newSolo);
+                    });
 
             // Create message
             TinNhanCaNhan m = new TinNhanCaNhan();
@@ -121,8 +121,8 @@ public class ChatService {
                 m.setReplyToId(UUID.fromString(dto.getReplyToId()));
                 m.setReplyToContent(dto.getReplyToContent());
                 m.setReplyToSender(dto.getReplyToSender());
-                System.out.println("✅ Private Reply saved: messageId=" + m.getMaTinNhan() + 
-                    ", replyToId=" + dto.getReplyToId());
+                System.out.println("✅ Private Reply saved: messageId=" + m.getMaTinNhan() +
+                        ", replyToId=" + dto.getReplyToId());
             }
 
             if (dto.getAttachments() != null && !dto.getAttachments().isEmpty()) {
@@ -132,6 +132,7 @@ public class ChatService {
 
             TinNhanCaNhan saved = privateRepo.save(m);
 
+            // ✅ FIX LỖI 1: Broadcast message tới conversation topic
             String conversationTopic = "/topic/chat/private/" + soloChat.getIdSoloChat();
 
             Map<String, Object> response = new HashMap<>();
@@ -145,16 +146,34 @@ public class ChatService {
             response.put("replyToContent", saved.getReplyToContent());
             response.put("replyToSender", saved.getReplyToSender());
             response.put("attachments", saved.getAttachments());
+            response.put("daDoc", false);
+            response.put("type", "private");
 
             messagingTemplate.convertAndSend(conversationTopic, response);
-
             System.out.println("✅ Message broadcast to: " + conversationTopic);
-            
+
+            // ✅ FIX LỖI 2: Broadcast tới chatlist topics của cả 2 người để update UI
+            // Gửi tới người nhận để cập nhật chatlist
+            Map<String, Object> chatListUpdate = new HashMap<>();
+            chatListUpdate.put("type", "message_received");
+            chatListUpdate.put("maTinNhan", saved.getMaTinNhan());
+            chatListUpdate.put("maNhomSolo", saved.getMaNhomSolo());
+            chatListUpdate.put("fromUserId", dto.getMaNguoiGui());
+            chatListUpdate.put("lastMessage", dto.getNoiDung());
+            chatListUpdate.put("timestamp", saved.getNgayGui());
+
+            messagingTemplate.convertAndSend("/topic/chatlist." + dto.getMaNguoiNhan(), chatListUpdate);
+            System.out.println("📢 Chatlist update to receiver: " + dto.getMaNguoiNhan());
+
+            // Gửi tới người gửi để cập nhật chatlist
+            messagingTemplate.convertAndSend("/topic/chatlist." + dto.getMaNguoiGui(), chatListUpdate);
+            System.out.println("📢 Chatlist update to sender: " + dto.getMaNguoiGui());
+
             // Create notification for receiver
             try {
                 User sender = userRepo.findById(dto.getMaNguoiGui()).orElse(null);
                 String senderName = sender != null ? sender.getTen() : dto.getMaNguoiGui();
-                
+
                 Notification notification = new Notification();
                 notification.setIdThongBao(UUID.randomUUID().toString());
                 notification.setIdNguoiNhan(dto.getMaNguoiNhan());
@@ -163,10 +182,10 @@ public class ChatService {
                 notification.setLienKet("/chat/" + dto.getMaNguoiGui());
                 notification.setTrangThai(false);
                 notification.setNgayTao(LocalDateTime.now());
-                
+
                 notificationRepo.save(notification);
                 System.out.println("✅ Notification created for user: " + dto.getMaNguoiNhan());
-                
+
                 // Broadcast notification to the receiver over WebSocket
                 try {
                     messagingTemplate.convertAndSend("/topic/notification." + dto.getMaNguoiNhan(), notification);
@@ -177,22 +196,22 @@ public class ChatService {
             } catch (Exception e) {
                 System.err.println("Failed to create notification: " + e.getMessage());
             }
-            
+
             return saved;
         } catch (DataIntegrityViolationException e) {
-            throw new RuntimeException("Người dùng không tồn tại. Mã người dùng: " + 
-                (dto.getMaNguoiGui().length() > 20 ? dto.getMaNguoiGui().substring(0, 20) : dto.getMaNguoiGui()));
+            throw new RuntimeException("Người dùng không tồn tại. Mã người dùng: " +
+                    (dto.getMaNguoiGui().length() > 20 ? dto.getMaNguoiGui().substring(0, 20) : dto.getMaNguoiGui()));
         }
     }
 
     public List<TinNhanCaNhan> getPrivateHistory(String userA, String userB) {
         // Get solo chat first
         var soloChat = soloChatRepository.findBetweenUsers(userA, userB);
-        
+
         if (soloChat.isEmpty()) {
             return List.of(); // No chat history if solo chat doesn't exist
         }
-        
+
         UUID maNhomSolo = soloChat.get().getIdSoloChat();
         // Get all messages from this solo chat, sorted by date
         return privateRepo.findByMaNhomSoloOrderByNgayGuiAsc(maNhomSolo);
@@ -202,6 +221,7 @@ public class ChatService {
         UUID maNhomUuid = UUID.fromString(maNhom);
         return groupRepo.findByMaNhomOrderByNgayGuiAsc(maNhom);
     }
+
     public TinNhanNhom saveGroupMessage(GroupMessage dto) {
 
         boolean isMember = memberRepo.existsByMaNhomAndIdUser(dto.getMaNhom(), dto.getMaNguoiGui());
@@ -222,8 +242,8 @@ public class ChatService {
             g.setReplyToId(UUID.fromString(dto.getReplyToId()));
             g.setReplyToContent(dto.getReplyToContent());
             g.setReplyToSender(dto.getReplyToSender());
-            System.out.println("✅ Group Reply saved: messageId=" + g.getMaTinNhan() + 
-                ", replyToId=" + dto.getReplyToId());
+            System.out.println("✅ Group Reply saved: messageId=" + g.getMaTinNhan() +
+                    ", replyToId=" + dto.getReplyToId());
         }
 
         // Save attachments if present
@@ -234,7 +254,25 @@ public class ChatService {
 
         TinNhanNhom saved = groupRepo.save(g);
 
+        // ✅ FIX LỖI 1-2: Broadcast group message tới message topic + chatlist topic
         messagingTemplate.convertAndSend("/topic/group." + dto.getMaNhom(), saved);
+        System.out.println("✅ Group message broadcast to /topic/group." + dto.getMaNhom());
+
+        // Broadcast chatlist update tới tất cả members
+        Map<String, Object> chatListUpdate = new HashMap<>();
+        chatListUpdate.put("type", "group_message_received");
+        chatListUpdate.put("maTinNhan", saved.getMaTinNhan());
+        chatListUpdate.put("maNhom", dto.getMaNhom());
+        chatListUpdate.put("fromUserId", dto.getMaNguoiGui());
+        chatListUpdate.put("lastMessage", dto.getNoiDung());
+        chatListUpdate.put("timestamp", saved.getNgayGui());
+
+        // Gửi tới tất cả members trong nhóm
+        List<ThanhVienNhom> members = memberRepo.findByMaNhom(dto.getMaNhom());
+        for (ThanhVienNhom member : members) {
+            messagingTemplate.convertAndSend("/topic/chatlist." + member.getIdUser(), chatListUpdate);
+        }
+        System.out.println("📢 Group chatlist update sent to " + members.size() + " members");
 
         return saved;
     }
